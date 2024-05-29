@@ -3,15 +3,15 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from random import shuffle
 from functions import *
 
-TOKEN = '6738768458:AAEl0eYCeWBbpOSPe3b8dHBRkhGiUamDTVQ'
+TOKEN = '6738768458:AAEl0eYCeWBbpOSPe3b8dHBRkhGiUamDTVQ'  # Токен для идентификации бота
 
-bot = Bot(token=TOKEN)
-dp = Dispatcher(bot, storage=MemoryStorage())
+bot = Bot(token=TOKEN)  # Создаем экземпляр бота
+dp = Dispatcher(bot, storage=MemoryStorage())  # Создаем экземпляр диспетчера
 
 """Обработка команды /start"""
 @dp.message_handler(text=['/start'])
 async def StartFunction(message: types.Message):
-    users[message.from_user.id] = ['', 0, ['', '']]
+    users[message.from_user.id] = ['', 0, ['', '']] # Анаграммы, Число для скрабла, города
 
     await message.answer(
         f'👋 Привет, {(message.from_user.first_name).upper()}!\n\nЭто <b>GameBot🤖</b>\n\n'
@@ -51,7 +51,7 @@ async def StartFunction(message: types.Message):
         '     Если игрок не может назвать город, он выбывает.\n'
         '     Побеждает последний оставшийся игрок.</i>\n', parse_mode=ParseMode.HTML, reply_markup=markup)
 
-
+"""Обработка коллбэков и вызов функций при нажатии на кнопки"""
 @dp.callback_query_handler()
 async def CheckMessage(message: types.CallbackQuery):
     callback = message.data
@@ -59,9 +59,8 @@ async def CheckMessage(message: types.CallbackQuery):
 
     if callback == 'City':
         await bot.send_message(message.from_user.id,
-                               f"Добро пожаловать в игру:\n Города России\n"
-                               f"\nНачинайте первым... 💬✍"
-                               )
+           f"Добро пожаловать в игру:\n Города России\n"
+           f"\nНачинайте первым... 💬✍")
         await Form.Cities.set()
 
     if callback == 'Anagramms':
@@ -74,35 +73,32 @@ async def CheckMessage(message: types.CallbackQuery):
         users[message.from_user.id][0] += word
 
         await bot.send_message(message.from_user.id,
-                               f"Всё, я Загадал слово ✍ \n\n"
-                               f"Посморишь ответ, когда сдашься 🫡 "
-                               f"\n<tg-spoiler>🫵👁\n{word}</tg-spoiler>",
-                               parse_mode=ParseMode.HTML
-                               )
+           f"Всё, я Загадал слово ✍ \n\n"
+           f"Посморишь ответ, когда сдашься 🫡 "
+           f"\n<tg-spoiler>🫵👁\n{word}</tg-spoiler>",
+           parse_mode=ParseMode.HTML)
 
         word_shuffled = list(word)
         shuffle(word_shuffled)
         shuffled_word = ''.join(word_shuffled)
 
         await bot.send_message(message.from_user.id,
-                               f"Вот Анаграмма: "
-                               f"\n\n\t{shuffled_word}\n\n"
-                               f"Угадай слово, которое я загадал 🤖"
-                               f"\n\nУдачи! 👀✊"
-                               )
+           f"Вот Анаграмма: "
+           f"\n\n\t{shuffled_word}\n\n"
+           f"Угадай слово, которое я загадал 🤖"
+           f"\n\nУдачи! 👀✊")
 
         await Form.Anagramms.set()
 
     if callback == 'Scrable':
         await bot.send_message(message.from_user.id,
-                               f"Добро пожаловать в игру Скрабл! 🔠\n\n"
-                               f"<b>Тема:</b> Фрукты на анг. яз 👨‍🍳\n"
-                               f"\n<i>Начнем ...</i> \n\nНапишите слово ✍️",
-                               parse_mode=ParseMode.HTML
-                               )
+            f"Добро пожаловать в игру Скрабл! 🔠\n\n"
+            f"<b>Тема:</b> Фрукты на анг. яз 👨‍🍳\n"
+            f"\n<i>Начнем ...</i> \n\nНапишите слово ✍️",
+            parse_mode=ParseMode.HTML)
         await Form.Scrable.set()
 
-
+"""Вызов анаграммы"""
 @dp.message_handler(state=Form.Anagramms)
 async def adc_function(message: types.Message, state: FSMContext):
     msg = message.text
@@ -112,21 +108,23 @@ async def adc_function(message: types.Message, state: FSMContext):
         await message.reply_animation(animation=gif, caption=
         f"Можете выбирать другую игру 🤖\n"
         f"\n1)  /help   -   Помощь 👨‍🏫\n",
-                                      reply_markup=markup)
+        reply_markup=markup)
 
         await state.finish()
 
-    if msg.lower() == users[message.from_user.id][0].lower():
+    if msg.lower() == users[message.from_user.id][0].lower(): # Сюда сохраняется слово, выведенное программой
         await message.answer("Верно! Угадал! 😄🎖")
         await message.answer("✅")
 
-        users[message.from_user.id][0] = ''
+        users[message.from_user.id][0] = ''  # Перемешивание букв в слове
         word = choice(words)
         users[message.from_user.id][0] += word
 
         await message.answer(
             f"Всё, я Загадал слово ✍ \n\n"
             f"Посморишь ответ, когда сдашься 🫡 "
+            f"\n<tg-spoiler>🫵👁\n{word}</tg-spoiler>",
+            parse_mode=ParseMode.HTML
         )
 
         word_shuffled = list(word)
@@ -150,7 +148,7 @@ async def adc_function(message: types.Message, state: FSMContext):
                 parse_mode=ParseMode.HTML
             )
 
-
+"""этот декоратор для скрабла"""
 @dp.message_handler(state=Form.Scrable)
 async def adc_function(message: types.Message, state: FSMContext):
     msg = message.text
@@ -160,7 +158,7 @@ async def adc_function(message: types.Message, state: FSMContext):
         await message.reply_animation(animation=gif, caption=
         f"Можете выбирать другую игру 🤖\n"
         f"\n1)/help   -   Помощь 👨‍🏫\n",
-                                      reply_markup=markup)
+        reply_markup=markup)
 
         await state.finish()
 
@@ -182,7 +180,7 @@ async def adc_function(message: types.Message, state: FSMContext):
                 parse_mode=ParseMode.HTML
             )
 
-
+"""Этот декоратор нужен для городов"""
 @dp.message_handler(state=Form.Cities)
 async def adc_function(message: types.Message, state: FSMContext):
     msg = message.text
@@ -192,7 +190,7 @@ async def adc_function(message: types.Message, state: FSMContext):
         await message.reply_animation(animation=gif, caption=
         f"Можете выбирать другую игру 🤖\n"
         f"\n1)  /help   -   Помощь 👨‍🏫\n",
-                                      reply_markup=markup)
+        reply_markup=markup)
 
         await state.finish()
 
